@@ -391,6 +391,22 @@
     pointer-events:none;
   }
   .toast-msg.show{opacity:1;transform:translate(-50%,0);}
+  .demo-banner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    background:#FBEEC9;
+    border:2px solid var(--ps);
+    border-radius:12px;
+    padding:14px 18px;
+    margin-bottom:18px;
+    font-size:.88rem;
+    color:var(--ink);
+  }
+  .demo-banner b{color:var(--ba);}
+  .demo-banner button{white-space:nowrap;flex-shrink:0;}
   .evo-filters{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-start;}
   .evo-filters select{padding:6px 8px;border-radius:8px;border:1px solid var(--line);font-size:.82rem;}
   .filter-group{display:flex;flex-direction:column;gap:6px;min-width:180px;}
@@ -424,6 +440,11 @@
 </header>
 
 <div class="container">
+
+  <div class="demo-banner" id="demo-banner" style="display:none;">
+    <span>🧪 <b>Modo demonstração:</b> esta é a versão online, só para você experimentar — nada que você preencher aqui fica salvo de verdade. Baixe o app abaixo para usar de verdade, com seus dados salvos com segurança no seu próprio navegador.</span>
+    <button class="btn-primary" data-action="download-app">⬇ Baixar este app (.html)</button>
+  </div>
 
   <div class="toolbar">
     <label for="eval-date">Data da avaliação:</label>
@@ -571,6 +592,14 @@ const SKILL_GROUPS = [
 const ALL_SKILLS = SKILL_GROUPS.flatMap(g => g.skills.map(s => ({...s, groupKey:g.key})));
 const STORAGE_KEY = "pmoSkillsTracker_v1";
 
+/* Modo demonstração: quando o app está rodando no domínio hospedado do
+   GitHub Pages, a persistência é desligada de propósito — a pessoa pode
+   mexer em tudo para conhecer a ferramenta, mas nada fica salvo de fato.
+   Isso empurra para o download, que é a forma real/privada de usar o app
+   (rodando localmente, cada um com seus próprios dados no seu navegador). */
+const DEMO_HOSTNAMES = ['pmolabs.github.io'];
+const IS_DEMO = DEMO_HOSTNAMES.includes(location.hostname);
+
 /* ============================================================
    PERSISTÊNCIA (localStorage)
    estrutura: {
@@ -580,6 +609,7 @@ const STORAGE_KEY = "pmoSkillsTracker_v1";
    }
    ============================================================ */
 function loadData(){
+  if(IS_DEMO) return { history: [], activities: [], auditLog: [] };
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
@@ -594,6 +624,7 @@ function loadData(){
   return { history: [], activities: [], auditLog: [] };
 }
 function saveData(data){
+  if(IS_DEMO) return; // modo demonstração: intencionalmente não persiste
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 let DATA = loadData();
@@ -1443,6 +1474,9 @@ document.getElementById('import-file').addEventListener('change', function(e){
 /* ============================================================
    INICIALIZAÇÃO
    ============================================================ */
+if(IS_DEMO){
+  document.getElementById('demo-banner').style.display = 'flex';
+}
 buildGroupSelect();
 buildSkillFilterSelect();
 renderAllGroups();
