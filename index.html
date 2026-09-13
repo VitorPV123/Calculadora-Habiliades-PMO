@@ -175,8 +175,6 @@
     margin-bottom:14px;
   }
   .group-avg b{color:var(--ink);}
-  .group-avg.below b{color:var(--warn);}
-  .group-avg.above b{color:var(--good);}
 
   .skill-row{
     padding:14px 0 10px;
@@ -219,8 +217,7 @@
     padding:4px 0;
     border-radius:8px;
   }
-  .skill-value.below{color:var(--warn);}
-  .skill-value.ok{color:var(--good);}
+  .skill-value{color:var(--ink);}
 
   /* Activity log per skill */
   .activity-panel{margin:0 0 14px;}
@@ -572,7 +569,6 @@ const SKILL_GROUPS = [
 ];
 
 const ALL_SKILLS = SKILL_GROUPS.flatMap(g => g.skills.map(s => ({...s, groupKey:g.key})));
-const THRESHOLD = 7.0;
 const STORAGE_KEY = "pmoSkillsTracker_v1";
 
 /* ============================================================
@@ -860,17 +856,15 @@ function renderActivityPanel(skillId){
 function renderGroupCard(group){
   const el = document.getElementById("group-card-"+group.key);
   const avg = groupAverage(group.key, draft);
-  const belowClass = avg < THRESHOLD ? "below" : "above";
   let html = `
     <div class="group-head">
       <h3>${group.title}</h3>
       <span class="perspective-tag ${group.tagClass}">${group.perspective}</span>
     </div>
-    <div class="group-avg ${belowClass}">Média do grupo: <b>${fmt(avg)}</b> / 10 ${avg < THRESHOLD ? "— abaixo da meta (7,0)" : "— dentro da meta"}</div>
+    <div class="group-avg">Média do grupo: <b>${fmt(avg)}</b> / 10</div>
   `;
   group.skills.forEach(s=>{
     const val = Number(draft[s.id])||0;
-    const valClass = val < THRESHOLD ? "below" : "ok";
     html += `
       <div class="skill-row">
         <div class="skill-info">
@@ -880,7 +874,7 @@ function renderGroupCard(group){
         <div class="skill-slider">
           <input type="range" min="0" max="10" step="1" value="${val}" data-skill="${s.id}" class="slider-input">
         </div>
-        <div class="skill-value ${valClass}" id="val-${s.id.replace('.','-')}">${val}</div>
+        <div class="skill-value" id="val-${s.id.replace('.','-')}">${val}</div>
       </div>
       <div class="activity-panel" id="act-panel-${s.id.replace('.','-')}">${activityPanelHTML(s.id)}</div>
     `;
@@ -892,11 +886,9 @@ function renderGroupCard(group){
       const id = e.target.dataset.skill;
       draft[id] = Number(e.target.value);
       document.getElementById("val-"+id.replace('.','-')).textContent = draft[id];
-      document.getElementById("val-"+id.replace('.','-')).className = "skill-value " + (draft[id] < THRESHOLD ? "below":"ok");
       const groupAvgEl = el.querySelector(".group-avg");
       const newAvg = groupAverage(group.key, draft);
-      groupAvgEl.innerHTML = `Média do grupo: <b>${fmt(newAvg)}</b> / 10 ${newAvg < THRESHOLD ? "— abaixo da meta (7,0)" : "— dentro da meta"}`;
-      groupAvgEl.className = "group-avg " + (newAvg < THRESHOLD ? "below":"above");
+      groupAvgEl.innerHTML = `Média do grupo: <b>${fmt(newAvg)}</b> / 10`;
       renderSummary();
       renderCharts();
     });
